@@ -18,14 +18,9 @@
                         <label for="harga" class="form-label">Harga</label>
                         <input type="text" class="form-control" id="harga" name="harga" readonly>
 
-                        <label for="stok" class="form-label">Stok</label>
-                        <input type="text" class="form-control" id="stok" name="stok" readonly>
-
                         <label for="quantity" class="form-label">Quantity</label>
-                        <input type="number" class="form-control" id="quantity" name="quantity" required min="1">
+                        <input type="number" class="form-control" id="quantity" name="quantity">
 
-                        <label for="total_harga" class="form-label">Total Harga</label>
-                        <input type="text" class="form-control" id="total_harga" name="total_harga" readonly>
                     </div>
                 </div>
                 <div class="modal-footer">

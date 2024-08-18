@@ -5,17 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Barang extends Model
+class History extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'kode_barang',
-        'nama_barang',
-        'harga',
-        'stok',
-        'kategori',
-        'foto_barang',
+        'action',
+        'details',
+    ];
+
+    protected $casts = [
+        'details' => 'array',
     ];
 }
-

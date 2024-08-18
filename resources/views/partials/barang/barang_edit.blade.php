@@ -6,10 +6,8 @@
                 <h5 class="modal-title" id="editModalLabel">Edit Barang</h5>
             </div>
             <form action="{{ route('barangs.update', $barang->id) }}" method="POST">
-
                 @csrf
                 @method('PUT')
-                
                 <div class="modal-body container-fluid">
                     <div class="mb-3">
                         <label for="nama_barang" class="form-label">Nama Barang</label>

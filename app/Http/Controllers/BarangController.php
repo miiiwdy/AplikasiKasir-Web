@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
-use Illuminate\Http\Request;
+use App\Models\History;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
 class BarangController extends Controller
 {
@@ -20,7 +21,6 @@ class BarangController extends Controller
                 $query->where('nama_barang', 'like', "%{$search}%")->orWhere('kode_barang', 'like', "%{$search}%");
             });
         }
-        
 
         switch ($sortBy) {
             case 'nama_barang_asc':
@@ -64,6 +64,16 @@ class BarangController extends Controller
         ]);
         $barang = new Barang($request->all());
 
+        History::create([
+            'action' => 'add',
+            'details' => json_encode([
+                'nama_barang' => $barang->nama_barang,
+                'harga' => $barang->harga,
+                'stok' => $barang->stok,
+                'created_at' => $barang->created_at
+            ]),
+        ]);
+
         $barang->kode_barang = $kodeBarang;
 
         if ($request->hasFile('foto_barang')) {
@@ -91,6 +101,16 @@ class BarangController extends Controller
             $barang->foto_barang = basename($fileName);
         }
         $barang->save();
+
+        History::create([
+            'action' => 'edit',
+            'details' => json_encode([
+                'nama_barang' => $barang->nama_barang,
+                'harga' => $barang->harga,
+                'stok' => $barang->stok,
+                'updated_at' => $barang->updated_at
+            ]),
+        ]);
 
         return redirect()->route('dashboard')->with('success', 'Barang berhasil diperbarui.');
     }
