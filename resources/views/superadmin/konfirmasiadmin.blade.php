@@ -21,7 +21,7 @@
     <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets/img/apple-icon.png') }}">
     <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
     <title>
-        EasyCashier | Admin
+        EasyCashier | SuperAdmin
     </title>
     <!--     Fonts and icons     -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -50,11 +50,11 @@
             <div class="container-fluid py-1 px-3">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-                        <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Admin</a>
+                        <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">SuperAdmin</a>
                         </li>
                         <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Dashboard</li>
                     </ol>
-                    <h6 class="font-weight-bolder mb-0">Petugas Manager</h6>
+                    <h6 class="font-weight-bolder mb-0">Konfirmasi Admin</h6>
                 </nav>
 
                 <ul class="navbar-nav  justify-content-end">
@@ -78,82 +78,35 @@
                         <div class="card-header pb-0">
                             <div class="column">
                                 <div class="col-lg-6 col-7">
-                                    <h6>Petugas Manager</h6>
+                                    <h6>Konfirmasi Admin</h6>
                                 </div>
-                                <button type="button" class="btn btn-primary w-25" data-bs-toggle="modal"
-                                    data-bs-target="#createModal">Tambah Petugas</button>
-
                             </div>
                         </div>
-                        @include('partials.petugas.petugas_create')
                         <div class="card-body px-0 pb-2">
+                            @if(session('status'))
+                                <div class="alert alert-success">
+                                    {{ session('status') }}
+                                </div>
+                            @endif
                             <div class="table-responsive">
                                 <table class="table align-items-center mb-0">
                                     <thead>
                                         <tr>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Nama Petugas</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Email</th>
-                                            {{-- <th
-                                          class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                          Password</th> --}}
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Role</th>
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Tanggal</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($users as $user)
+                                        @foreach($pending as $user)
                                             <tr>
+                                                <td>{{ $user->name }}</td>
+                                                <td>{{ $user->email }}</td>
                                                 <td>
-                                                    <div class="d-flex px-2 py-1">
-                                                        <div class="d-flex flex-column justify-content-center">
-                                                            <h6 class="mb-0 text-sm">{{ $user->name }}</h6>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="avatar-group">
-                                                        {{ $user->email }}
-                                                    </div>
-                                                </td>
-                                                {{-- <td>
-                                              <div class="avatar-group">
-                                                  {{ $user->password }}
-                                              </div>
-                                          </td> --}}
-                                                <td>
-                                                    <div class="avatar-group">
-                                                        {{ $user->role }}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="avatar-group">
-                                                        {{ $user->created_at }}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="avatar-group d-flex">
-                                                        <button type="button" class="btn btn-warning"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#editModal_{{ $user->id }}"
-                                                            data-book-id="{{ $user->id }}">
-                                                            Edit
-                                                        </button>
-                                                        @include('partials.petugas.petugas_edit')
-                                                        <form action="{{ route('petugas.destroy', $user->id) }}" method="POST" class="ml-2">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger ml-3">Delete</button>
-                                                        </form>
-                                                        
-                                                    </div>
+                                                    <form action="{{ route('superadmin.confirm', $user->id) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-success">Confirm</button>
+                                                    </form>
                                                 </td>
                                             </tr>
                                         @endforeach

@@ -26,7 +26,7 @@ class PetugasController extends Controller
         $user->password = bcrypt($request->password);
         $user->save();
 
-        return redirect()->route('petugasmanager')->with('success', 'User berhasil ditambahkan.');
+        return redirect()->route('petugasmanager_admin')->with('success', 'User berhasil ditambahkan.');
     }
 
     public function update(Request $request, User $user)
@@ -41,12 +41,12 @@ class PetugasController extends Controller
             'email' => $request->input('email'),
         ]);
 
-        return redirect()->route('petugasmanager')->with('success', 'Petugas berhasil diperbarui.');
+        return redirect()->route('petugasmanager_admin')->with('success', 'Petugas berhasil diperbarui.');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-        return redirect()->route('petugasmanager')->with('success', 'Petugas berhasil dihapus.');
+        return redirect()->route('petugasmanager_admin')->with('success', 'Petugas berhasil dihapus.');
     }
 }

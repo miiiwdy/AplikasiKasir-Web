@@ -21,7 +21,7 @@
     <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('assets/img/apple-icon.png') }}">
     <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon.png') }}">
     <title>
-        EasyCashier | Admin
+        EasyCashier | SuperAdmin
     </title>
     <!--     Fonts and icons     -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -50,11 +50,11 @@
             <div class="container-fluid py-1 px-3">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-                        <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Admin</a>
-                        </li>
+                        <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark"
+                                href="javascript:;">SuperAdmin</a></li>
                         <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Dashboard</li>
                     </ol>
-                    <h6 class="font-weight-bolder mb-0">Petugas Manager</h6>
+                    <h6 class="font-weight-bolder mb-0">Histori Barang</h6>
                 </nav>
 
                 <ul class="navbar-nav  justify-content-end">
@@ -78,14 +78,10 @@
                         <div class="card-header pb-0">
                             <div class="column">
                                 <div class="col-lg-6 col-7">
-                                    <h6>Petugas Manager</h6>
+                                    <h6>Histori Barang</h6>
                                 </div>
-                                <button type="button" class="btn btn-primary w-25" data-bs-toggle="modal"
-                                    data-bs-target="#createModal">Tambah Petugas</button>
-
                             </div>
                         </div>
-                        @include('partials.petugas.petugas_create')
                         <div class="card-body px-0 pb-2">
                             <div class="table-responsive">
                                 <table class="table align-items-center mb-0">
@@ -93,66 +89,34 @@
                                         <tr>
                                             <th
                                                 class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                                Nama Petugas</th>
+                                                Aksi</th>
                                             <th
                                                 class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Email</th>
-                                            {{-- <th
-                                          class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                          Password</th> --}}
-                                            <th
-                                                class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
-                                                Role</th>
+                                                Detail</th>
                                             <th
                                                 class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">
                                                 Tanggal</th>
+
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($users as $user)
+                                        @foreach ($histories as $history)
                                             <tr>
                                                 <td>
                                                     <div class="d-flex px-2 py-1">
                                                         <div class="d-flex flex-column justify-content-center">
-                                                            <h6 class="mb-0 text-sm">{{ $user->name }}</h6>
+                                                            <h6 class="mb-0 text-sm">{{ $history->action }}</h6>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="avatar-group">
-                                                        {{ $user->email }}
-                                                    </div>
-                                                </td>
-                                                {{-- <td>
-                                              <div class="avatar-group">
-                                                  {{ $user->password }}
-                                              </div>
-                                          </td> --}}
-                                                <td>
-                                                    <div class="avatar-group">
-                                                        {{ $user->role }}
+                                                        {{ $history->details }}
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="avatar-group">
-                                                        {{ $user->created_at }}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="avatar-group d-flex">
-                                                        <button type="button" class="btn btn-warning"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#editModal_{{ $user->id }}"
-                                                            data-book-id="{{ $user->id }}">
-                                                            Edit
-                                                        </button>
-                                                        @include('partials.petugas.petugas_edit')
-                                                        <form action="{{ route('petugas.destroy', $user->id) }}" method="POST" class="ml-2">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger ml-3">Delete</button>
-                                                        </form>
-                                                        
+                                                        {{ $history->created_at }}
                                                     </div>
                                                 </td>
                                             </tr>
@@ -172,7 +136,6 @@
     <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
     <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
     <script src="../assets/js/plugins/chartjs.min.js"></script>
-
     <!-- Github buttons -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
     <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->

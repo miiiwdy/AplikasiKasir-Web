@@ -1,15 +1,17 @@
 <?php
 
-use App\Http\Controllers\AdminHomeController;
+use App\Http\Middleware\Petugas;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\PetugasController;
+use App\Http\Controllers\AdminHomeController;
 use App\Http\Controllers\PetugasHomeController;
-use App\Http\Middleware\Petugas;
+use App\Http\Controllers\SuperAdminHomeController;
+use App\Http\Controllers\KonfirmRegistrasiController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -57,9 +59,16 @@ Route::prefix('admin')->middleware('auth','admin')->group(function() {
     Route::get('/petugasmanager', [AdminHomeController::class, 'petugasmanager_admin'])->name('petugasmanager_admin');
 });
 
-// Route::prefix('superadmin')->middleware('auth','superadmin')->group(function() {
-//     Route::get('/dashboard', [HomeController::class, 'indexsuperadmin'])->name('dashboard_superadmin');
-// });
+Route::prefix('superadmin')->middleware('auth', 'superadmin')->group(function() {
+    Route::get('/listbarang', [SuperAdminHomeController::class, 'listbarang_superadmin'])->name('listbarang_superadmin');
+    Route::get('/pendataanbarang', [SuperAdminHomeController::class, 'pendataanbarang_superadmin'])->name('pendataanbarang_superadmin');
+    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/receipt', [CheckoutController::class, 'showReceipt'])->name('checkout.receipt');
+    Route::get('/histori', [SuperAdminHomeController::class, 'histori_superadmin'])->name('histori_superadmin');
+    Route::get('/petugasmanager', [SuperAdminHomeController::class, 'petugasmanager_superadmin'])->name('petugasmanager_superadmin');
+    Route::get('/pending', [KonfirmRegistrasiController::class, 'showPendingUsers'])->name('superadmin.pending');
+    Route::post('/confirm/{id}', [KonfirmRegistrasiController::class, 'confirmUser'])->name('superadmin.confirm');
+});
 
 Route::resource('barangs', BarangController::class);
 Route::resource('petugas', PetugasController::class);

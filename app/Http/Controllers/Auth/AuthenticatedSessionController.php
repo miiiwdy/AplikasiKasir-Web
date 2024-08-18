@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Request;
+use App\Http\Requests\Auth\LoginRequest;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -26,22 +26,26 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = $request->user();
+
+        if ($user->pending) {
+            Auth::logout();
+            return redirect()->route('login')->with('status', 'Tunggu dikonfirmasi');
+        }
+
         $request->session()->regenerate();
 
-        if($request->user()->role === 'admin') {
+        if($user->role === 'admin') {
             return redirect('admin/listbarang');
         }
-        // else if($request->user()->role === 'superadmin') {
-        //     return redirect('superadmin/listbarang');
-        // }
+        else if($user->role === 'superadmin') {
+            return redirect('superadmin/listbarang');
+        }
         
         return redirect('petugas/listbarang');
-
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
+  
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
