@@ -94,7 +94,7 @@
                                         <tr>
                                             <th>Name</th>
                                             <th>Email</th>
-                                            <th>Action</th>
+                                            <th>Keputusan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -103,10 +103,17 @@
                                                 <td>{{ $user->name }}</td>
                                                 <td>{{ $user->email }}</td>
                                                 <td>
-                                                    <form action="{{ route('superadmin.confirm', $user->id) }}" method="POST">
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-success">Confirm</button>
-                                                    </form>
+                                                    <div class="d-flex align-items-center">
+                                                        <form action="{{ route('superadmin.confirm', $user->id) }}" method="POST" style="margin-right: 5px;">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-success">Konfirmasi</button>
+                                                        </form>
+                                                        <form action="{{ route('superadmin.delete', $user->id) }}" method="POST">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this user?');">Hapus</button>
+                                                        </form>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach

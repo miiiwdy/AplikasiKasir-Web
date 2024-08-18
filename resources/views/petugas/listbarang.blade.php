@@ -41,6 +41,7 @@
 
 <body class="g-sidenav-show  bg-gray-100">
     @include('partials.transaksi.checkout')
+    @include('partials.transaksi.bill')
     {{-- sidebar --}}
     @include('layouts.sidebar')
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
@@ -95,6 +96,12 @@
                         </select>
                     </form>
                 </div>
+                <button id="bill" style="border: none; cursor: pointer;" data-bs-toggle="modal"
+                    data-bs-target="#billModal">
+                    Lihat Bill
+                </button>
+
+
             </div>
             <div id="result-container" class="listbarang">
                 @foreach ($barangs as $barang)
@@ -118,18 +125,18 @@
                                     <p id="hrg">Harga: <span>{{ $idr }}</span></p>
                                 </div>
                             </div>
-                            {{-- <div id="transaksibtn">
-                    <button id="transaksibtn" style="border: none; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#checkoutModal" data-nama-barang="{{ $barang->nama_barang }} data-kode-barang="{{ $barang->nama_barang }}>
-                        Transaksi Barang ini
-                    </button>
-                </div> --}}
-                            <div id="transaksibtn">
-                                <button id="transaksibtn" style="border: none; cursor: pointer;" data-bs-toggle="modal"
-                                    data-bs-target="#checkoutModal" data-nama="{{ $barang->nama_barang }}"
-                                    data-kode="{{ $barang->kode_barang }}" data-harga="{{ $barang->harga }}"
-                                    data-stok="{{ $barang->stok }}">
-                                    Transaksi Barang ini
-                                </button>
+                            <div class="addbarang_btn">
+                                <div class="transaksi-indicator">
+                                    <button class="kurangbarang">-</button>
+                                    <div class="jumlah" style="cursor: pointer">
+                                        <button class="jumlah" style="border: none; cursor: pointer;"></button>
+                                    </div>
+                                    <button class="tambahbarang">+</button>
+                                </div>
+                                <div class="transaksibtn">
+                                    <button class="transaksibtn" style="border: none; cursor: pointer;">Tambah Barang
+                                        ini</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -137,6 +144,216 @@
             </div>
         </div>
     </main>
+
+    <style>
+        #billTable {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+        #billTable th, #billTable td {
+            padding: 10px; /* Adds padding inside each cell */
+            text-align: left; /* Aligns text to the left */
+        }
+        #billTable th {
+            background-color: #f8f9fa; /* Optional: light background for header */
+        }
+    </style>
+    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var billModal = document.getElementById('billModal');
+            billModal.addEventListener('show.bs.modal', function(event) {
+                var button = event.relatedTarget; 
+                var purchaseData = JSON.parse(button.getAttribute('data-purchase'));
+                var tableBody = billModal.querySelector('#billTable tbody');
+                tableBody.innerHTML = ''; 
+
+                if (purchaseData.length > 0) {
+                    purchaseData.forEach(function(item) {
+                        var row = document.createElement('tr');
+                        var nameCell = document.createElement('td');
+                        var quantityCell = document.createElement('td');
+
+                        nameCell.textContent = item.nama_barang;
+                        quantityCell.textContent = item.quantity;
+
+                        row.appendChild(nameCell);
+                        row.appendChild(quantityCell);
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    var row = document.createElement('tr');
+                    var cell = document.createElement('td');
+                    cell.colSpan = 2;
+                    cell.textContent = 'No items selected.';
+                    row.appendChild(cell);
+                    tableBody.appendChild(row);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            let purchaseData = [];
+            let interval;
+
+            $('#bill').click(function() {
+                if (purchaseData.length > 0) {
+                    populateBillTable(purchaseData);
+                    $('#billModal').modal('show');
+                } else {
+                    alert('No items selected.');
+                }
+            });
+
+            function populateBillTable(data) {
+                const $tableBody = $('#billTable tbody');
+                $tableBody.empty(); 
+
+                data.forEach(item => {
+                    const row = `
+                    <tr>
+                        <td>${item.nama_barang}</td>
+                        <td>${item.quantity}</td>
+                    </tr>
+                `;
+                    $tableBody.append(row);
+                });
+            }
+
+            $('.transaksibtn button').click(function() {
+                const container = $(this).closest('.barang');
+                const namaBarang = container.find('#nb').text();
+                const kodeBarang = container.find('#kd span').text();
+
+                console.log('Adding item:', {
+                    namaBarang,
+                    kodeBarang
+                });
+
+                let item = purchaseData.find(data => data.kode_barang === kodeBarang);
+
+                if (!item) {
+                    purchaseData.push({
+                        nama_barang: namaBarang,
+                        kode_barang: kodeBarang,
+                        quantity: 1
+                    });
+                }
+
+                container.find('.transaksibtn').fadeOut('slow', function() {
+                    container.find('.jumlah').text(1).css('display', 'flex').fadeIn('slow',
+                        function() {
+                            container.find('.kurangbarang, .tambahbarang').fadeIn('slow');
+                        });
+                });
+            });
+
+            $('.tambahbarang').click(function() {
+                const container = $(this).closest('.barang');
+                const kodeBarang = container.find('#kd span').text();
+
+                let item = purchaseData.find(data => data.kode_barang === kodeBarang);
+                if (item) {
+                    item.quantity += 1;
+                    container.find('.jumlah').text(item.quantity);
+
+                    console.log('Increased quantity for:', {
+                        kodeBarang,
+                        newQuantity: item.quantity
+                    });
+                }
+            });
+
+            $('.kurangbarang').click(function() {
+                const container = $(this).closest('.barang');
+                const kodeBarang = container.find('#kd span').text();
+
+                let item = purchaseData.find(data => data.kode_barang === kodeBarang);
+                if (item) {
+                    if (item.quantity > 1) {
+                        item.quantity -= 1;
+                        container.find('.jumlah').text(item.quantity);
+
+                        console.log('Decreased quantity for:', {
+                            kodeBarang,
+                            newQuantity: item.quantity
+                        });
+                    } else {
+                        purchaseData = purchaseData.filter(data => data.kode_barang !== kodeBarang);
+                        container.find('.kurangbarang, .tambahbarang').fadeOut('slow', function() {
+                            container.find('.jumlah').fadeOut('slow', function() {
+                                container.find('.transaksibtn').fadeIn('slow');
+                            });
+                        });
+
+                        console.log('Removed item:', {
+                            kodeBarang
+                        });
+                    }
+                }
+            });
+
+            $('.tambahbarang').mousedown(function() {
+                const container = $(this).closest('.barang');
+                const kodeBarang = container.find('#kd span').text();
+                interval = setInterval(function() {
+                    let item = purchaseData.find(data => data.kode_barang === kodeBarang);
+                    if (item) {
+                        item.quantity += 1;
+                        container.find('.jumlah').text(item.quantity);
+                    }
+                }, 200);
+            });
+
+            $('.kurangbarang').mousedown(function() {
+                const container = $(this).closest('.barang');
+                const kodeBarang = container.find('#kd span').text();
+                interval = setInterval(function() {
+                    let item = purchaseData.find(data => data.kode_barang === kodeBarang);
+                    if (item) {
+                        if (item.quantity > 1) {
+                            item.quantity -= 1;
+                            container.find('.jumlah').text(item.quantity);
+                        } else {
+                            purchaseData = purchaseData.filter(data => data.kode_barang !==
+                                kodeBarang);
+                            container.find('.kurangbarang, .tambahbarang').fadeOut('slow',
+                            function() {
+                                container.find('.jumlah').fadeOut('slow', function() {
+                                    container.find('.transaksibtn').fadeIn('slow');
+                                });
+                            });
+                        }
+                    }
+                }, 200);
+            });
+
+            $('.jumlah').click(function() {
+                const container = $(this).closest('.barang');
+                const kodeBarang = container.find('#kd span').text();
+
+                purchaseData = purchaseData.filter(data => data.kode_barang !== kodeBarang);
+                container.find('.kurangbarang, .tambahbarang').fadeOut('slow', function() {
+                    container.find('.jumlah').fadeOut('slow', function() {
+                        container.find('.transaksibtn').fadeIn('slow');
+                    });
+                });
+
+                console.log('Removed item on jumlah click:', {
+                    kodeBarang
+                });
+            });
+
+            $(document).mouseup(function() {
+                clearInterval(interval);
+            });
+        });
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const checkoutModal = document.getElementById('checkoutModal');
@@ -153,11 +370,10 @@
                 document.getElementById('nama_barang').value = namaBarang;
                 document.getElementById('kode_barang').value = kodeBarang;
                 document.getElementById('harga').value = hargaBarang;
-                document.getElementById('stok').value = stokBarang;
-                quantityInput.value = 1; // Default quantity
-                totalHargaInput.value = hargaBarang; // Default total price
+                quantityInput.value = 1;
+                totalHargaInput.value = hargaBarang;
 
-                quantityInput.max = stokBarang; // Set max quantity to stock
+                quantityInput.max = stokBarang;
             });
 
             quantityInput.addEventListener('input', function() {
@@ -172,6 +388,7 @@
             });
         });
     </script>
+
     <!--   Core JS Files   -->
     <script src="../assets/js/core/popper.min.js"></script>
     <script src="../assets/js/core/bootstrap.min.js"></script>

@@ -6,7 +6,7 @@ use Illuminate\View\View;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use App\Http\Requests\Auth\LoginRequest;
 
 class AuthenticatedSessionController extends Controller
@@ -28,9 +28,9 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        if ($user->pending) {
+        if ($user->role === 'admin' && $user->pending) {
             Auth::logout();
-            return redirect()->route('login')->with('status', 'Tunggu dikonfirmasi');
+            return redirect()->route('login')->with('status', 'tungu di konfirmasi sama superadmin');
         }
 
         $request->session()->regenerate();

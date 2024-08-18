@@ -29,14 +29,19 @@ class PetugasController extends Controller
         return redirect()->route('petugasmanager_admin')->with('success', 'User berhasil ditambahkan.');
     }
 
-    public function update(Request $request, User $user)
+    public function edit(User $petugas)
+    {
+        return view('petugas.edit', compact('petugas'));
+    }
+
+    public function update(Request $request, User $petugas)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $petugas->id,
         ]);
 
-        $user->update([
+        $petugas->update([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
         ]);
@@ -44,9 +49,9 @@ class PetugasController extends Controller
         return redirect()->route('petugasmanager_admin')->with('success', 'Petugas berhasil diperbarui.');
     }
 
-    public function destroy(User $user)
+    public function destroy(User $petugas)
     {
-        $user->delete();
+        $petugas->delete();
         return redirect()->route('petugasmanager_admin')->with('success', 'Petugas berhasil dihapus.');
     }
 }

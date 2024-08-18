@@ -37,7 +37,7 @@
     <link id="pagestyle" href="../assets/css/soft-ui-dashboard.css?v=1.0.7" rel="stylesheet" />
     <!-- Nepcha Analytics (nepcha.com) -->
     <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
-    <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
+    {{-- <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script> --}}
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
@@ -150,7 +150,7 @@
                                                         <form action="{{ route('petugas.destroy', $user->id) }}" method="POST" class="ml-2">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger ml-3">Delete</button>
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
                                                         </form>
                                                         
                                                     </div>

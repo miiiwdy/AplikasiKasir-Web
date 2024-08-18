@@ -142,28 +142,27 @@
             const checkoutModal = document.getElementById('checkoutModal');
             const quantityInput = document.getElementById('quantity');
             const totalHargaInput = document.getElementById('total_harga');
-
+    
             checkoutModal.addEventListener('show.bs.modal', function(event) {
                 const button = event.relatedTarget;
                 const namaBarang = button.getAttribute('data-nama');
                 const kodeBarang = button.getAttribute('data-kode');
                 const hargaBarang = button.getAttribute('data-harga');
                 const stokBarang = button.getAttribute('data-stok');
-
+    
                 document.getElementById('nama_barang').value = namaBarang;
                 document.getElementById('kode_barang').value = kodeBarang;
                 document.getElementById('harga').value = hargaBarang;
-                document.getElementById('stok').value = stokBarang;
                 quantityInput.value = 1; // Default quantity
                 totalHargaInput.value = hargaBarang; // Default total price
-
+    
                 quantityInput.max = stokBarang; // Set max quantity to stock
             });
-
+    
             quantityInput.addEventListener('input', function() {
                 const hargaBarang = parseFloat(document.getElementById('harga').value);
                 const quantity = parseInt(quantityInput.value, 10);
-
+    
                 if (quantity > 0 && quantity <= quantityInput.max) {
                     totalHargaInput.value = (hargaBarang * quantity).toFixed(2);
                 } else {
@@ -172,6 +171,7 @@
             });
         });
     </script>
+    
     <!--   Core JS Files   -->
     <script src="../assets/js/core/popper.min.js"></script>
     <script src="../assets/js/core/bootstrap.min.js"></script>

@@ -3,8 +3,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createModalLabel">Tambah Petugas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('petugas.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('petugas.store') }}" method="POST">
                 @csrf
                 <div class="modal-body container-fluid">
                     <div class="mb-3">
@@ -27,7 +28,7 @@
                         @enderror
             
                         <label for="role" class="form-label">Role</label>
-                        <input autocomplete="off" type="text" class="form-control @error('role') is-invalid @enderror" id="role" name="role" value="petugas" readonly   >
+                        <input autocomplete="off" type="text" class="form-control @error('role') is-invalid @enderror" id="role" name="role" value="petugas" readonly>
                         @error('role')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -35,7 +36,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn bg-gradient-primary">Tambah Petugas</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Tambah Petugas</button>
                 </div>
             </form>            
         </div>
