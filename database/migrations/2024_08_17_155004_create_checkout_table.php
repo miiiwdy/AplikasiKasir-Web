@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('kode_barang');
             $table->integer('quantity');
-            $table->decimal('price', 10, 2); 
+            $table->decimal('price', 10, 2);    
             $table->string('metode_pembayaran');
             $table->timestamps();
 

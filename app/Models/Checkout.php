@@ -16,6 +16,8 @@ class Checkout extends Model
     protected $fillable = [
         'kode_barang',
         'quantity',
+        'price',
+        'metode_pembayaran'
     ];
 
     protected $guarded = [];

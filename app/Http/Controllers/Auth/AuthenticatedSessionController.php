@@ -36,10 +36,10 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         if($user->role === 'admin') {
-            return redirect('admin/listbarang');
+            return redirect('admin/petugasmanager');
         }
         else if($user->role === 'superadmin') {
-            return redirect('superadmin/listbarang');
+            return redirect('superadmin/pending');
         }
         
         return redirect('petugas/listbarang');

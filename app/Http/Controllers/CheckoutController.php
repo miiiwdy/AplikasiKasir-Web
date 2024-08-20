@@ -7,6 +7,7 @@ use App\Models\History;
 use App\Models\Checkout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\CheckoutRequest;
 use Illuminate\Support\Facades\Session;
 
 class CheckoutController extends Controller
@@ -14,81 +15,44 @@ class CheckoutController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'nama_barang' => 'required|string',
-            'kode_barang' => 'required|string',
-            'harga' => 'required|numeric',
-            'quantity' => 'required|integer|min:1',
-            'metodepembayaran' => 'required|string',
+            'purchaseData.*.kode_barang' => 'required|string',
+            'purchaseData.*.quantity' => 'required|integer|min:1',
+            'purchaseData.*.price' => 'required|numeric',
+            'purchaseData.*.metode_pembayaran' => 'required|string',
         ]);
 
-        try {
-            $barang = Barang::where('kode_barang', $validatedData['kode_barang'])->firstOrFail();
+        session(['purchaseData' => $validatedData['purchaseData']]);
 
-            if ($barang->stok < $validatedData['quantity']) {
-                return redirect()->back()->withErrors(['error' => 'Stok tidak cukup.']);
-            }
-
-            // Create a new checkout entry
-            $checkout = Checkout::create([
-                'kode_barang' => $validatedData['kode_barang'],
-                'quantity' => $validatedData['quantity'],
-                'price' => $validatedData['harga'],
-                'metodepembayaran' => $validatedData['metodepembayaran'],
+        foreach ($validatedData['purchaseData'] as $data) {
+            Checkout::create([
+                'kode_barang' => $data['kode_barang'],
+                'quantity' => $data['quantity'],
+                'price' => $data['price'],
+                'metode_pembayaran' => $data['metode_pembayaran'],
             ]);
-
-            // Update the stock
-            $barang->stok -= $validatedData['quantity'];
-            $barang->save();
-
-            // Create a history entry
-            History::create([
-                'action' => 'checkout',
-                'details' => json_encode([
-                    'kode_barang' => $checkout->kode_barang,
-                    'quantity' => $checkout->quantity,
-                    'price' => $checkout->price,
-                    'created_at' => $checkout->created_at,
-                ]),
-            ]);
-
-            // Delete the item if out of stock
-            if ($barang->stok <= 0) {
-                $barang->delete();
-            }
-
-            // Calculate the total price
-            $totalHarga = $validatedData['harga'] * $validatedData['quantity'];
-
-            // Store the purchase data in session
-            $purchaseData = Session::get('purchaseData', []);
-            $purchaseData[] = [
-                'nama_barang' => $validatedData['nama_barang'],
-                'kode_barang' => $validatedData['kode_barang'],
-                'quantity' => $validatedData['quantity'],
-                'harga' => $validatedData['harga'],
-                'total_harga' => $totalHarga
-            ];
-            Session::put('purchaseData', $purchaseData);
-
-            // Redirect to the bill view
-            return redirect()->route('checkout.bill');
-
-        } catch (\Exception $e) {
-            Log::error('Checkout error: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan.']);
         }
+
+        return redirect()->route('receipt');
     }
 
-    public function showBill()
+    public function showReceipt()
     {
-        $purchaseData = Session::get('purchaseData', []);
-        return view('partials.transaksi.bill', ['purchaseData' => $purchaseData]);
+        $purchaseData = session('purchaseData', []);
+
+        foreach ($purchaseData as &$item) {
+            $barang = Barang::where('kode_barang', $item['kode_barang'])->first();
+            if ($barang) {
+                $item['nama_barang'] = $barang->nama_barang;
+            } else {
+                $item['nama_barang'] = 'Unknown';
+            }
+        }
+
+        return view('receipt', ['purchaseData' => $purchaseData]);
     }
 
-    public function clearBill()
+    public function print()
     {
-        // Clear purchase data from session
-        Session::forget('purchaseData');
-        return redirect()->route('listbarang');
+        return redirect()->route('listbarang_petugas');
     }
 }

@@ -37,10 +37,11 @@
     {{-- <!-- Nepcha Analytics (nepcha.com) -->
     <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
     <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script> --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body class="g-sidenav-show  bg-gray-100">
-    @include('partials.transaksi.checkout')
+    {{-- @include('partials.transaksi.checkout') --}}
     @include('partials.transaksi.bill')
     {{-- sidebar --}}
     @include('layouts.sidebar')
@@ -149,242 +150,201 @@
         #billTable {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 10px;
+            border-spacing: 0 5px;
         }
-        #billTable th, #billTable td {
-            padding: 10px; /* Adds padding inside each cell */
-            text-align: left; /* Aligns text to the left */
+
+        #billTable td {
+            padding: 5px;
+            text-align: left;
         }
+
         #billTable th {
-            background-color: #f8f9fa; /* Optional: light background for header */
+            background-color: #f8f9fa;
         }
     </style>
-    
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var billModal = document.getElementById('billModal');
-            billModal.addEventListener('show.bs.modal', function(event) {
-                var button = event.relatedTarget; 
-                var purchaseData = JSON.parse(button.getAttribute('data-purchase'));
-                var tableBody = billModal.querySelector('#billTable tbody');
-                tableBody.innerHTML = ''; 
-
-                if (purchaseData.length > 0) {
-                    purchaseData.forEach(function(item) {
-                        var row = document.createElement('tr');
-                        var nameCell = document.createElement('td');
-                        var quantityCell = document.createElement('td');
-
-                        nameCell.textContent = item.nama_barang;
-                        quantityCell.textContent = item.quantity;
-
-                        row.appendChild(nameCell);
-                        row.appendChild(quantityCell);
-                        tableBody.appendChild(row);
-                    });
-                } else {
-                    var row = document.createElement('tr');
-                    var cell = document.createElement('td');
-                    cell.colSpan = 2;
-                    cell.textContent = 'No items selected.';
-                    row.appendChild(cell);
-                    tableBody.appendChild(row);
-                }
-            });
-        });
-    </script>
 
     <script>
         $(document).ready(function() {
             let purchaseData = [];
-            let interval;
 
-            $('#bill').click(function() {
-                if (purchaseData.length > 0) {
-                    populateBillTable(purchaseData);
-                    $('#billModal').modal('show');
-                } else {
-                    alert('No items selected.');
+            function calculateTotal() {
+                let total = purchaseData.reduce((sum, item) => sum + item.total_hrg, 0);
+                return total;
+            }
+
+            function updateTotalHarga() {
+                const totalHarga = calculateTotal();
+                $('.total-harga').text(totalHarga.toLocaleString());
+            }
+
+            function updateQuantityDisplay(container, quantity) {
+                container.find('.jumlah').text(quantity);
+            }
+
+            $('#checkoutBtn').click(function() {
+                const metodePembayaran = $('#metodepembayaran').val();
+                if (!metodePembayaran) {
+                    alert('Pilih metode pembayaran terlebih dahulu');
+                    return;
                 }
+                const dataToSend = purchaseData.map(item => {
+                    return {
+                        kode_barang: item.kode_barang,
+                        quantity: item.quantity,
+                        price: item.price,
+                        metode_pembayaran: metodePembayaran
+                    };
+                });
+
+                $.ajax({
+                    url: '{{ route('checkout.store') }}',
+                    type: 'POST',
+                    data: {
+                        purchaseData: dataToSend,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        window.location.href = '{{ route('receipt') }}';
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error during checkout:', error);
+                        alert('Checkout failed. Please try again.');
+                    }
+                });
             });
 
-            function populateBillTable(data) {
-                const $tableBody = $('#billTable tbody');
-                $tableBody.empty(); 
 
-                data.forEach(item => {
-                    const row = `
-                    <tr>
-                        <td>${item.nama_barang}</td>
-                        <td>${item.quantity}</td>
-                    </tr>
-                `;
-                    $tableBody.append(row);
+            $('#bill').click(function() {
+                $('#billTable tbody').empty();
+
+                purchaseData.forEach(item => {
+                    let row = `
+        <tr>
+            <td>${item.nama_barang}</td>
+            <td>${item.quantity}</td>
+            <td>${item.total_hrg.toLocaleString()}</td>
+        </tr>`;
+                    $('#billTable tbody').append(row);
                 });
-            }
+
+                $('#billModal').modal('show');
+                updateTotalHarga();
+            });
 
             $('.transaksibtn button').click(function() {
                 const container = $(this).closest('.barang');
-                const namaBarang = container.find('#nb').text();
                 const kodeBarang = container.find('#kd span').text();
+                const namaBarang = container.find('#nb').text();
+                const hargaBarang = parseFloat(container.find('#hrg span').text().replace(/\./g, '')
+                    .replace(',', '.'));
+                const stokBarang = parseInt(container.find('#stk span').text());
+                const quantity = 1;
 
-                console.log('Adding item:', {
-                    namaBarang,
-                    kodeBarang
-                });
+                let existingItem = purchaseData.find(item => item.kode_barang === kodeBarang);
 
-                let item = purchaseData.find(data => data.kode_barang === kodeBarang);
-
-                if (!item) {
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                    existingItem.total_hrg = existingItem.price * existingItem.quantity;
+                } else {
                     purchaseData.push({
                         nama_barang: namaBarang,
                         kode_barang: kodeBarang,
-                        quantity: 1
+                        quantity: quantity,
+                        price: hargaBarang,
+                        stok: stokBarang,
+                        total_hrg: hargaBarang * quantity
                     });
                 }
 
                 container.find('.transaksibtn').fadeOut('slow', function() {
-                    container.find('.jumlah').text(1).css('display', 'flex').fadeIn('slow',
+                    container.find('.jumlah').text(quantity).css('display', 'flex').fadeIn('slow',
                         function() {
                             container.find('.kurangbarang, .tambahbarang').fadeIn('slow');
                         });
                 });
+
+                updateTotalHarga();
+                console.log(purchaseData);
             });
 
-            $('.tambahbarang').click(function() {
-                const container = $(this).closest('.barang');
+            let timer;
+
+            function incrementQuantity(container) {
                 const kodeBarang = container.find('#kd span').text();
+                let existingItem = purchaseData.find(item => item.kode_barang === kodeBarang);
 
-                let item = purchaseData.find(data => data.kode_barang === kodeBarang);
-                if (item) {
-                    item.quantity += 1;
-                    container.find('.jumlah').text(item.quantity);
+                if (existingItem && existingItem.quantity < existingItem.stok) {
+                    existingItem.quantity += 1;
+                    existingItem.total_hrg = existingItem.price * existingItem.quantity;
+                    updateQuantityDisplay(container, existingItem.quantity);
+                } else if (!existingItem) {
+                    alert('Item tidak ditemukan');
+                } else {
+                    alert('Stok tidak mencukupi');
+                }
 
-                    console.log('Increased quantity for:', {
-                        kodeBarang,
-                        newQuantity: item.quantity
+                updateTotalHarga();
+                console.log(purchaseData);
+            }
+
+            function decrementQuantity(container) {
+                const kodeBarang = container.find('#kd span').text();
+                let existingItem = purchaseData.find(item => item.kode_barang === kodeBarang);
+
+                if (existingItem && existingItem.quantity > 1) {
+                    existingItem.quantity -= 1;
+                    existingItem.total_hrg = existingItem.price * existingItem.quantity;
+                    updateQuantityDisplay(container, existingItem.quantity);
+                } else if (existingItem && existingItem.quantity === 1) {
+                    purchaseData = purchaseData.filter(item => item.kode_barang !== kodeBarang);
+                    container.find('.kurangbarang, .tambahbarang').fadeOut('slow', function() {
+                        container.find('.jumlah').fadeOut('slow', function() {
+                            container.find('.transaksibtn').fadeIn('slow');
+                        });
                     });
+                } else {
+                    alert('Item tidak ditemukan atau sudah habis');
                 }
-            });
 
-            $('.kurangbarang').click(function() {
+                updateTotalHarga();
+                console.log(purchaseData);
+            }
+
+            $('.tambahbarang').on('mousedown touchstart', function() {
                 const container = $(this).closest('.barang');
-                const kodeBarang = container.find('#kd span').text();
+                incrementQuantity(container);
 
-                let item = purchaseData.find(data => data.kode_barang === kodeBarang);
-                if (item) {
-                    if (item.quantity > 1) {
-                        item.quantity -= 1;
-                        container.find('.jumlah').text(item.quantity);
-
-                        console.log('Decreased quantity for:', {
-                            kodeBarang,
-                            newQuantity: item.quantity
-                        });
-                    } else {
-                        purchaseData = purchaseData.filter(data => data.kode_barang !== kodeBarang);
-                        container.find('.kurangbarang, .tambahbarang').fadeOut('slow', function() {
-                            container.find('.jumlah').fadeOut('slow', function() {
-                                container.find('.transaksibtn').fadeIn('slow');
-                            });
-                        });
-
-                        console.log('Removed item:', {
-                            kodeBarang
-                        });
-                    }
-                }
-            });
-
-            $('.tambahbarang').mousedown(function() {
-                const container = $(this).closest('.barang');
-                const kodeBarang = container.find('#kd span').text();
-                interval = setInterval(function() {
-                    let item = purchaseData.find(data => data.kode_barang === kodeBarang);
-                    if (item) {
-                        item.quantity += 1;
-                        container.find('.jumlah').text(item.quantity);
-                    }
+                timer = setInterval(() => {
+                    incrementQuantity(container);
                 }, 200);
+            }).on('mouseup mouseleave touchend', function() {
+                clearInterval(timer);
             });
 
-            $('.kurangbarang').mousedown(function() {
+            $('.kurangbarang').on('mousedown touchstart', function() {
                 const container = $(this).closest('.barang');
-                const kodeBarang = container.find('#kd span').text();
-                interval = setInterval(function() {
-                    let item = purchaseData.find(data => data.kode_barang === kodeBarang);
-                    if (item) {
-                        if (item.quantity > 1) {
-                            item.quantity -= 1;
-                            container.find('.jumlah').text(item.quantity);
-                        } else {
-                            purchaseData = purchaseData.filter(data => data.kode_barang !==
-                                kodeBarang);
-                            container.find('.kurangbarang, .tambahbarang').fadeOut('slow',
-                            function() {
-                                container.find('.jumlah').fadeOut('slow', function() {
-                                    container.find('.transaksibtn').fadeIn('slow');
-                                });
-                            });
-                        }
-                    }
+                decrementQuantity(container);
+
+                timer = setInterval(() => {
+                    decrementQuantity(container);
                 }, 200);
+            }).on('mouseup mouseleave touchend', function() {
+                clearInterval(timer);
             });
 
             $('.jumlah').click(function() {
                 const container = $(this).closest('.barang');
                 const kodeBarang = container.find('#kd span').text();
 
-                purchaseData = purchaseData.filter(data => data.kode_barang !== kodeBarang);
+                purchaseData = purchaseData.filter(item => item.kode_barang !== kodeBarang);
                 container.find('.kurangbarang, .tambahbarang').fadeOut('slow', function() {
                     container.find('.jumlah').fadeOut('slow', function() {
                         container.find('.transaksibtn').fadeIn('slow');
                     });
                 });
 
-                console.log('Removed item on jumlah click:', {
-                    kodeBarang
-                });
-            });
-
-            $(document).mouseup(function() {
-                clearInterval(interval);
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkoutModal = document.getElementById('checkoutModal');
-            const quantityInput = document.getElementById('quantity');
-            const totalHargaInput = document.getElementById('total_harga');
-
-            checkoutModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const namaBarang = button.getAttribute('data-nama');
-                const kodeBarang = button.getAttribute('data-kode');
-                const hargaBarang = button.getAttribute('data-harga');
-                const stokBarang = button.getAttribute('data-stok');
-
-                document.getElementById('nama_barang').value = namaBarang;
-                document.getElementById('kode_barang').value = kodeBarang;
-                document.getElementById('harga').value = hargaBarang;
-                quantityInput.value = 1;
-                totalHargaInput.value = hargaBarang;
-
-                quantityInput.max = stokBarang;
-            });
-
-            quantityInput.addEventListener('input', function() {
-                const hargaBarang = parseFloat(document.getElementById('harga').value);
-                const quantity = parseInt(quantityInput.value, 10);
-
-                if (quantity > 0 && quantity <= quantityInput.max) {
-                    totalHargaInput.value = (hargaBarang * quantity).toFixed(2);
-                } else {
-                    totalHargaInput.value = hargaBarang.toFixed(2); // Default total price
-                }
+                updateTotalHarga();
+                console.log(purchaseData);
             });
         });
     </script>
